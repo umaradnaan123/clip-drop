@@ -1,0 +1,646 @@
+<style>
+  #cc-root {
+    --violet: #8B7CF6;
+    --teal: #34D0BE;
+    --coral: #F17C93;
+    --ink: #E9EBFA;
+    --ink-dim: rgba(233,235,250,0.62);
+    --ink-faint: rgba(233,235,250,0.4);
+    --glass: rgba(255,255,255,0.07);
+    --glass-strong: rgba(255,255,255,0.13);
+    --glass-border: rgba(255,255,255,0.18);
+    --danger: #F0899B;
+
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--ink);
+    min-height: 100%;
+    position: relative;
+    padding: 48px 20px;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    background: #0B0D1C;
+    overflow: hidden;
+  }
+  #cc-root * { box-sizing: border-box; }
+
+  .cc-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .cc-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.55;
+  }
+  .cc-blob.b1 { width: 480px; height: 480px; background: var(--violet); top: -160px; left: -120px; }
+  .cc-blob.b2 { width: 420px; height: 420px; background: var(--teal); bottom: -140px; right: -100px; }
+  .cc-blob.b3 { width: 300px; height: 300px; background: var(--coral); top: 40%; left: 55%; opacity: 0.35; }
+
+  .cc-wrap { width: 100%; max-width: 620px; position: relative; z-index: 1; }
+
+  .cc-masthead { text-align: left; margin-bottom: 26px; }
+  .cc-masthead h1 {
+    font-family: 'Sora', 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 34px;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px 0;
+  }
+  .cc-masthead p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    max-width: 48ch;
+  }
+
+  .cc-glass {
+    background: var(--glass);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+  }
+
+  /* mode cards */
+  .cc-modes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .cc-mode-card {
+    padding: 18px 14px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    text-align: left;
+  }
+  .cc-mode-card:hover { transform: translateY(-2px); }
+  .cc-mode-card .cc-mode-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  .cc-mode-card[data-type="text"] .cc-mode-icon { background: rgba(139,124,246,0.25); }
+  .cc-mode-card[data-type="image"] .cc-mode-icon { background: rgba(52,208,190,0.25); }
+  .cc-mode-card[data-type="file"] .cc-mode-icon { background: rgba(241,124,147,0.25); }
+  .cc-mode-card h3 { margin: 0 0 3px 0; font-size: 14px; font-weight: 600; }
+  .cc-mode-card p { margin: 0; font-size: 11.5px; color: var(--ink-faint); line-height: 1.4; }
+  .cc-mode-card.cc-active { background: var(--glass-strong); border-color: rgba(255,255,255,0.32); }
+  .cc-mode-card.cc-active h3 { color: var(--ink); }
+
+  /* tab pill */
+  .cc-tabs {
+    display: flex;
+    padding: 5px;
+    margin-bottom: 16px;
+    gap: 4px;
+  }
+  .cc-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    border-radius: 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink-dim);
+    background: transparent;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .cc-tab.cc-active {
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    color: #0B0D1C;
+  }
+
+  .cc-panel { padding: 26px; }
+  .cc-panel-label {
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+  }
+
+  textarea#cc-content {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.05);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 14px;
+    border-radius: 14px;
+  }
+  textarea#cc-content::placeholder { color: var(--ink-faint); }
+  textarea#cc-content:focus, input:focus, button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 1px;
+  }
+
+  .cc-drop {
+    border: 1.5px dashed var(--glass-border);
+    border-radius: 14px;
+    padding: 34px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .cc-drop:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.04); }
+  .cc-drop .cc-drop-icon { font-size: 26px; margin-bottom: 8px; }
+  .cc-drop p { margin: 0; font-size: 13px; color: var(--ink-dim); }
+  .cc-drop p.cc-drop-sub { font-size: 11.5px; color: var(--ink-faint); margin-top: 4px; }
+
+  .cc-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+  }
+  .cc-preview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+  .cc-preview .cc-file-icon {
+    width: 44px; height: 44px; border-radius: 8px;
+    background: rgba(241,124,147,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .cc-preview .cc-meta { flex: 1; min-width: 0; }
+  .cc-preview .cc-meta .cc-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cc-preview .cc-meta .cc-size { font-size: 11.5px; color: var(--ink-faint); }
+  .cc-preview button {
+    background: none; border: none; cursor: pointer;
+    color: var(--danger); font-size: 12px; font-family: 'Inter', sans-serif;
+  }
+
+  .cc-row { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+
+  .cc-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 12px 22px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  .cc-btn:hover { transform: translateY(-1px); }
+  .cc-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .cc-btn-primary { background: linear-gradient(135deg, var(--violet), var(--teal)); color: #0B0D1C; }
+  .cc-btn-ghost { background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-border); }
+
+  .cc-code-display {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.14em;
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  input#cc-code-input {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.05);
+    color: var(--ink);
+    padding: 12px 14px;
+    border-radius: 14px;
+    width: 190px;
+  }
+  input#cc-code-input::placeholder { color: var(--ink-faint); letter-spacing: 0.08em; }
+
+  .cc-status {
+    margin-top: 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    padding: 10px 14px;
+    border-radius: 12px;
+    display: none;
+  }
+  .cc-status.cc-show { display: block; }
+  .cc-status.cc-ok { background: rgba(52,208,190,0.14); color: var(--teal); border: 1px solid rgba(52,208,190,0.3); }
+  .cc-status.cc-err { background: rgba(240,137,155,0.14); color: var(--danger); border: 1px solid rgba(240,137,155,0.3); }
+
+  .cc-claim-box { margin-top: 16px; }
+  .cc-claim-box img { max-width: 100%; display: block; border-radius: 14px; border: 1px solid var(--glass-border); }
+  .cc-claim-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 14px;
+    line-height: 1.6;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 14px;
+    max-height: 240px;
+    overflow: auto;
+  }
+
+  .cc-foot { margin-top: 18px; font-size: 11px; color: var(--ink-faint); line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    .cc-modes { grid-template-columns: 1fr; }
+    .cc-masthead h1 { font-size: 27px; }
+    input#cc-code-input { width: 150px; font-size: 16px; }
+  }
+</style>
+
+<div id="cc-root">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<div class="cc-bg">
+  <div class="cc-blob b1"></div>
+  <div class="cc-blob b2"></div>
+  <div class="cc-blob b3"></div>
+</div>
+
+<div class="cc-wrap">
+
+  <div class="cc-masthead">
+    <h1>Passcloud</h1>
+    <p>Move text, images or files between your devices. No sign-up — send something, get a code, retrieve it anywhere with that code.</p>
+  </div>
+
+  <div class="cc-modes">
+    <div class="cc-mode-card cc-glass cc-active" data-type="text">
+      <div class="cc-mode-icon">✎</div>
+      <h3>Text</h3>
+      <p>Send any text snippet</p>
+    </div>
+    <div class="cc-mode-card cc-glass" data-type="image">
+      <div class="cc-mode-icon">▧</div>
+      <h3>Images</h3>
+      <p>Share screenshots & photos</p>
+    </div>
+    <div class="cc-mode-card cc-glass" data-type="file">
+      <div class="cc-mode-icon">⬡</div>
+      <h3>Files</h3>
+      <p>Transfer small files fast</p>
+    </div>
+  </div>
+
+  <div class="cc-tabs cc-glass">
+    <button class="cc-tab cc-active" data-tab="send">↑ Send</button>
+    <button class="cc-tab" data-tab="retrieve">↓ Retrieve</button>
+  </div>
+
+  <!-- SEND PANEL -->
+  <div class="cc-glass cc-panel" id="cc-send-panel">
+    <p class="cc-panel-label" id="cc-send-label">Your content</p>
+
+    <div id="cc-text-input">
+      <textarea id="cc-content" placeholder="Paste your text here…"></textarea>
+    </div>
+
+    <div id="cc-file-drop-wrap" style="display:none;">
+      <div class="cc-drop" id="cc-drop">
+        <div class="cc-drop-icon">⇪</div>
+        <p id="cc-drop-title">Click to choose an image, or drop one here</p>
+        <p class="cc-drop-sub">Up to ~5MB</p>
+      </div>
+      <div class="cc-preview" id="cc-preview" style="display:none; margin-top:10px;">
+        <img id="cc-preview-img" style="display:none;">
+        <div class="cc-file-icon" id="cc-preview-file-icon" style="display:none;">⬡</div>
+        <div class="cc-meta">
+          <div class="cc-name" id="cc-preview-name"></div>
+          <div class="cc-size" id="cc-preview-size"></div>
+        </div>
+        <button id="cc-preview-remove">remove</button>
+      </div>
+      <input type="file" id="cc-file-input" style="display:none;">
+    </div>
+
+    <div class="cc-row">
+      <button class="cc-btn cc-btn-primary" id="cc-send-btn">Send Text</button>
+      <button class="cc-btn cc-btn-ghost" id="cc-clipboard-btn">⎘ Send Clipboard</button>
+      <span class="cc-code-display" id="cc-issued-code" style="display:none;"></span>
+    </div>
+
+    <div class="cc-status" id="cc-send-status"></div>
+  </div>
+
+  <!-- RETRIEVE PANEL -->
+  <div class="cc-glass cc-panel" id="cc-retrieve-panel" style="display:none;">
+    <p class="cc-panel-label">Enter your code</p>
+    <div class="cc-row" style="margin-top:0;">
+      <input id="cc-code-input" maxlength="6" placeholder="XXXXXX">
+      <button class="cc-btn cc-btn-primary" id="cc-claim-btn">Retrieve</button>
+    </div>
+    <div class="cc-status" id="cc-claim-status"></div>
+    <div class="cc-claim-box" id="cc-claim-box"></div>
+  </div>
+
+  <p class="cc-foot">Anyone with the code can retrieve what's sent under it. Items are held for 24 hours, then discarded.</p>
+
+</div>
+</div>
+
+<script>
+(function(){
+  const CHARS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+  const TTL_MS = 24 * 60 * 60 * 1000;
+  const MAX_BYTES = 5 * 1024 * 1024;
+
+  let activeType = 'text';   // text | image | file
+  let activeTab = 'send';    // send | retrieve
+  let pendingFile = null;    // { dataUrl, name, size }
+
+  const modeCards = document.querySelectorAll('.cc-mode-card');
+  const tabs = document.querySelectorAll('.cc-tab');
+  const sendPanel = document.getElementById('cc-send-panel');
+  const retrievePanel = document.getElementById('cc-retrieve-panel');
+
+  const textInputWrap = document.getElementById('cc-text-input');
+  const contentEl = document.getElementById('cc-content');
+  const fileDropWrap = document.getElementById('cc-file-drop-wrap');
+  const drop = document.getElementById('cc-drop');
+  const dropTitle = document.getElementById('cc-drop-title');
+  const fileInput = document.getElementById('cc-file-input');
+  const preview = document.getElementById('cc-preview');
+  const previewImg = document.getElementById('cc-preview-img');
+  const previewFileIcon = document.getElementById('cc-preview-file-icon');
+  const previewName = document.getElementById('cc-preview-name');
+  const previewSize = document.getElementById('cc-preview-size');
+  const previewRemove = document.getElementById('cc-preview-remove');
+
+  const sendBtn = document.getElementById('cc-send-btn');
+  const clipboardBtn = document.getElementById('cc-clipboard-btn');
+  const issuedCodeEl = document.getElementById('cc-issued-code');
+  const sendStatus = document.getElementById('cc-send-status');
+
+  const codeInput = document.getElementById('cc-code-input');
+  const claimBtn = document.getElementById('cc-claim-btn');
+  const claimStatus = document.getElementById('cc-claim-status');
+  const claimBox = document.getElementById('cc-claim-box');
+
+  function fmtSize(bytes){
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/(1024*1024)).toFixed(1) + ' MB';
+  }
+
+  function genCode(len){
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    let out = "";
+    for (let i = 0; i < len; i++) out += CHARS[arr[i] % CHARS.length];
+    return out;
+  }
+
+  function setStatus(el, msg, kind){
+    el.textContent = msg;
+    el.className = "cc-status cc-show " + (kind === 'ok' ? 'cc-ok' : 'cc-err');
+  }
+  function clearStatus(el){ el.className = "cc-status"; el.textContent = ""; }
+
+  function resetPending(){
+    pendingFile = null;
+    preview.style.display = 'none';
+    fileInput.value = '';
+  }
+
+  function setMode(type){
+    activeType = type;
+    modeCards.forEach(c => c.classList.toggle('cc-active', c.dataset.type === type));
+    resetPending();
+    issuedCodeEl.style.display = 'none';
+    clearStatus(sendStatus);
+
+    if (type === 'text') {
+      textInputWrap.style.display = '';
+      fileDropWrap.style.display = 'none';
+      sendBtn.textContent = 'Send Text';
+      fileInput.removeAttribute('accept');
+    } else if (type === 'image') {
+      textInputWrap.style.display = 'none';
+      fileDropWrap.style.display = '';
+      dropTitle.textContent = 'Click to choose an image, or drop one here';
+      sendBtn.textContent = 'Send Image';
+      fileInput.setAttribute('accept', 'image/*');
+    } else {
+      textInputWrap.style.display = 'none';
+      fileDropWrap.style.display = '';
+      dropTitle.textContent = 'Click to choose a file, or drop one here';
+      sendBtn.textContent = 'Send File';
+      fileInput.removeAttribute('accept');
+    }
+    clipboardBtn.style.display = type === 'text' ? '' : 'none';
+  }
+
+  function setTab(tab){
+    activeTab = tab;
+    tabs.forEach(t => t.classList.toggle('cc-active', t.dataset.tab === tab));
+    sendPanel.style.display = tab === 'send' ? '' : 'none';
+    retrievePanel.style.display = tab === 'retrieve' ? '' : 'none';
+  }
+
+  modeCards.forEach(c => c.addEventListener('click', () => setMode(c.dataset.type)));
+  tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+
+  drop.addEventListener('click', () => fileInput.click());
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.background = 'rgba(255,255,255,0.06)'; });
+  drop.addEventListener('dragleave', () => { drop.style.background = ''; });
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.style.background = '';
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(f){
+    if (f.size > MAX_BYTES) {
+      setStatus(sendStatus, "That file is too big — keep it under 5MB.", 'err');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      pendingFile = { dataUrl: reader.result, name: f.name, size: f.size, mime: f.type };
+      preview.style.display = 'flex';
+      if (activeType === 'image' && f.type.indexOf('image') === 0) {
+        previewImg.src = reader.result;
+        previewImg.style.display = '';
+        previewFileIcon.style.display = 'none';
+      } else {
+        previewImg.style.display = 'none';
+        previewFileIcon.style.display = 'flex';
+      }
+      previewName.textContent = f.name;
+      previewSize.textContent = fmtSize(f.size);
+    };
+    reader.readAsDataURL(f);
+  }
+
+  previewRemove.addEventListener('click', resetPending);
+
+  clipboardBtn.addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      contentEl.value = text;
+      setStatus(sendStatus, "Pulled in your clipboard text — review it below, then Send.", 'ok');
+    } catch (err) {
+      setStatus(sendStatus, "Couldn't read your clipboard — your browser may need permission, or try pasting into the box manually.", 'err');
+    }
+  });
+
+  sendBtn.addEventListener('click', async () => {
+    clearStatus(sendStatus);
+    issuedCodeEl.style.display = 'none';
+
+    let payload = null;
+    if (activeType === 'text') {
+      const text = contentEl.value.trim();
+      if (!text) { setStatus(sendStatus, "Add some text first.", 'err'); return; }
+      payload = { type: 'text', content: text, createdAt: Date.now() };
+    } else {
+      if (!pendingFile) { setStatus(sendStatus, `Choose ${activeType === 'image' ? 'an image' : 'a file'} first.`, 'err'); return; }
+      payload = {
+        type: activeType,
+        content: pendingFile.dataUrl,
+        name: pendingFile.name,
+        size: pendingFile.size,
+        mime: pendingFile.mime,
+        createdAt: Date.now()
+      };
+    }
+
+    sendBtn.disabled = true;
+    const prevLabel = sendBtn.textContent;
+    sendBtn.textContent = 'Sending…';
+
+    try {
+      const code = genCode(6);
+      const result = await window.storage.set('drop:' + code, JSON.stringify(payload), true);
+      if (!result) throw new Error('storage returned nothing');
+      issuedCodeEl.textContent = code;
+      issuedCodeEl.style.display = 'inline';
+      setStatus(sendStatus, "Sent — share this code only with the device you're moving this to. Held for 24 hours.", 'ok');
+    } catch (err) {
+      console.error(err);
+      setStatus(sendStatus, "Couldn't send that just now — try again in a moment.", 'err');
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = prevLabel;
+    }
+  });
+
+  codeInput.addEventListener('input', () => {
+    codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+  codeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') claimBtn.click(); });
+
+  claimBtn.addEventListener('click', async () => {
+    clearStatus(claimStatus);
+    claimBox.innerHTML = '';
+    const code = codeInput.value.trim();
+    if (code.length < 4) { setStatus(claimStatus, "Enter the code you were given.", 'err'); return; }
+
+    claimBtn.disabled = true;
+    claimBtn.textContent = 'Retrieving…';
+
+    try {
+      let result;
+      try { result = await window.storage.get('drop:' + code, true); }
+      catch (e) { result = null; }
+
+      if (!result) { setStatus(claimStatus, "Nothing found for that code.", 'err'); return; }
+
+      const data = JSON.parse(result.value);
+      const age = Date.now() - (data.createdAt || 0);
+
+      if (age > TTL_MS) {
+        try { await window.storage.delete('drop:' + code, true); } catch(e) {}
+        setStatus(claimStatus, "That code expired — items are only held for 24 hours.", 'err');
+        return;
+      }
+
+      if (data.type === 'image') {
+        const img = document.createElement('img');
+        img.src = data.content;
+        claimBox.appendChild(img);
+        const dl = document.createElement('a');
+        dl.href = data.content;
+        dl.download = data.name || 'image';
+        dl.className = 'cc-btn cc-btn-ghost';
+        dl.style.display = 'inline-block';
+        dl.style.marginTop = '10px';
+        dl.style.textDecoration = 'none';
+        dl.textContent = 'Download image';
+        claimBox.appendChild(dl);
+      } else if (data.type === 'file') {
+        const box = document.createElement('div');
+        box.className = 'cc-preview';
+        box.style.marginBottom = '10px';
+        box.innerHTML = '<div class="cc-file-icon">⬡</div>' +
+          '<div class="cc-meta"><div class="cc-name"></div><div class="cc-size"></div></div>';
+        box.querySelector('.cc-name').textContent = data.name || 'file';
+        box.querySelector('.cc-size').textContent = fmtSize(data.size || 0);
+        claimBox.appendChild(box);
+
+        const dl = document.createElement('a');
+        dl.href = data.content;
+        dl.download = data.name || 'download';
+        dl.className = 'cc-btn cc-btn-primary';
+        dl.style.display = 'inline-block';
+        dl.style.textDecoration = 'none';
+        dl.textContent = 'Download file';
+        claimBox.appendChild(dl);
+      } else {
+        const div = document.createElement('div');
+        div.className = 'cc-claim-text';
+        div.textContent = data.content;
+        claimBox.appendChild(div);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'cc-btn cc-btn-ghost';
+        copyBtn.style.marginTop = '10px';
+        copyBtn.textContent = 'Copy text';
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(data.content);
+            copyBtn.textContent = 'Copied';
+            setTimeout(() => { copyBtn.textContent = 'Copy text'; }, 1500);
+          } catch(e) {
+            copyBtn.textContent = 'Select the text above to copy';
+          }
+        });
+        claimBox.appendChild(copyBtn);
+      }
+
+      setStatus(claimStatus, "Retrieved.", 'ok');
+    } catch (err) {
+      console.error(err);
+      setStatus(claimStatus, "Couldn't reach storage — try again in a moment.", 'err');
+    } finally {
+      claimBtn.disabled = false;
+      claimBtn.textContent = 'Retrieve';
+    }
+  });
+
+  setMode('text');
+  setTab('send');
+})();
+</script>
